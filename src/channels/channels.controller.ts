@@ -14,7 +14,6 @@ export class ChannelsController {
     try {
       return await this.channelsService.getData(token, limit, channel_id);
     } catch (error) {
-      console.error('Ошибка:', error);
       return { error: 'Ошибка при получении данных' };
     }
   }

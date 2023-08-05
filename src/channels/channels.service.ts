@@ -5,6 +5,7 @@ export class ChannelsService {
   async getData(token: string, limit: number, channel_id: string) {
     const headers = new Headers();
     headers.set('Content-Type', 'application/json');
+
     const response = await fetch(
       `https://api.tgstat.ru/channels/posts?token=${token}&limit=${limit}&channelId=${channel_id}`,
       { headers },
