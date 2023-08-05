@@ -46,9 +46,11 @@ export class AuthController {
       }
 
       if (errors.length > 0) {
-        return res
-          .status(400)
-          .json({ errors, mainMessage: 'Что-то пошло не так' });
+        return res.status(400).json({
+          status: res.status,
+          errors,
+          mainMessage: 'Что-то пошло не так',
+        });
       }
 
       const passwordHashed = await bcrypt.hash(password, 12);
@@ -69,7 +71,9 @@ export class AuthController {
         user: newUser,
       });
     } catch (err) {
-      return res.status(500).json({ message: 'Ошибка сервера' });
+      return res
+        .status(500)
+        .json({ status: res.status, message: 'Ошибка сервера' });
     }
   }
 
@@ -77,25 +81,31 @@ export class AuthController {
   async login(
     @Res() res: Response,
     @Body('password') password: string,
-    @Body('emailOrUserName') emailOrUserName?: string,
+    @Body('emailOrUserName') email_or_user_name: string,
   ) {
     try {
-      if (!emailOrUserName) {
-        return res.json(400).json({ message: 'Введите почту или имя!' });
+      if (!email_or_user_name) {
+        return res
+          .json(400)
+          .json({ status: res.status, message: 'Введите почту или имя!' });
       }
 
       const user = await this.authService.findUserByEmailOrUserName(
-        emailOrUserName,
+        email_or_user_name,
       );
 
       if (!user) {
-        return res.status(400).json({ message: 'Пользователя не существует' });
+        return res
+          .status(400)
+          .json({ status: res.status, message: 'Пользователя не существует' });
       }
 
       const verifyPassword = await bcrypt.compare(password, user.password);
 
       if (!verifyPassword) {
-        return res.status(400).json({ message: 'Неверный пароль!' });
+        return res
+          .status(400)
+          .json({ status: res.status, message: 'Неверный пароль!' });
       }
 
       const accessToken = this.authService.generateAccessToken(user.id);
@@ -108,7 +118,9 @@ export class AuthController {
         user,
       });
     } catch (err) {
-      return res.status(500).json({ message: 'Ошибка сервера' });
+      return res
+        .status(500)
+        .json({ status: res.status, message: 'Ошибка сервера' });
     }
   }
 }
