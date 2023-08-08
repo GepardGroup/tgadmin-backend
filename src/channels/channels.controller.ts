@@ -19,9 +19,42 @@ export class ChannelsController {
     @Query('token') token: string,
     @Query('limit') limit: number,
     @Query('channel_id') channel_id: string,
+    @Query('channel_ids') channel_ids?: string[],
   ) {
     try {
-      return await this.channelsService.getData(token, limit, channel_id);
+      if (!channel_ids || channel_ids.length === 0) {
+        return await this.channelsService.getData(token, limit, channel_id);
+      } else {
+        const channels = channel_ids.toString().split(',');
+        const result: any = {
+          status: '',
+          response: {
+            count: 0,
+            total_count: 0,
+            items: [],
+          },
+        };
+
+        for (let i = 0; i < channels.length; i++) {
+          const item = channels[i];
+
+          const channel = await this.channelsService.getData(
+            token,
+            limit,
+            item,
+          );
+
+          result.status = channel.status;
+          result.response.count += channel.response.count;
+          result.response.total_count += channel.response.total_count;
+          result.response.items = [
+            ...result.response.items,
+            ...channel.response.items,
+          ];
+        }
+
+        return result;
+      }
     } catch (error) {
       return { error: 'Ошибка при получении данных' };
     }

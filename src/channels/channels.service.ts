@@ -9,12 +9,7 @@ export class ChannelsService {
     @InjectRepository(Channel) private channelRepository: Repository<Channel>,
   ) {}
 
-  async getData(
-    token: string,
-    limit: number,
-    channel_id: string,
-    channel_ids?: string[],
-  ) {
+  async getData(token: string, limit: number, channel_id: string) {
     const headers = new Headers();
     headers.set('Content-Type', 'application/json');
 
