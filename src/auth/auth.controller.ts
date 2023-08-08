@@ -1,5 +1,5 @@
 import * as bcrypt from 'bcrypt';
-import { Body, Controller, Post, Res } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Response } from 'express';
 import { ResError } from 'src/types/main';
@@ -142,7 +142,7 @@ export class AuthController {
     @Body('refresh_token') refresh_token: string,
   ) {
     try {
-      const userId = this.authService.verifyRefreshToken(refresh_token).userId;
+      const userId = this.authService.verifyToken(refresh_token).userId;
 
       if (!userId) {
         return res
@@ -153,6 +153,39 @@ export class AuthController {
       const accessToken = this.authService.generateAccessToken(userId);
 
       return res.json({ accessToken });
+    } catch (err) {
+      return res.status(500).json({ status: 500, message: 'Ошибка сервера' });
+    }
+  }
+
+  @Get('get-me')
+  async getMe(
+    @Res() res: Response,
+    @Query('accessToken') accessToken?: string,
+  ) {
+    try {
+      if (!accessToken) {
+        return;
+      }
+
+      const { userId } = this.authService.verifyToken(accessToken);
+
+      const user = await this.authService.findUserById(userId);
+
+      if (!user) {
+        return res
+          .status(400)
+          .json({ status: 400, message: 'Пользователь не найден' });
+      }
+
+      const sendUser = {
+        id: user.id,
+        email: user.email,
+        user_name: user.user_name,
+        created_at: user.created_at,
+      };
+
+      return res.json({ user: sendUser });
     } catch (err) {
       return res.status(500).json({ status: 500, message: 'Ошибка сервера' });
     }

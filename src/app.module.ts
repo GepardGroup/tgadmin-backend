@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ChannelsController } from './channels/channels.controller';
-import { ChannelsService } from './channels/channels.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './Entities/user.entity';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
+import { ChannelsModule } from './channels/channels.module';
+import { Channel } from './Entities/channel.entity';
 
 @Module({
   imports: [
@@ -21,13 +21,14 @@ import { ConfigModule } from '@nestjs/config';
       username: 'postgres',
       password: 'admin',
       database: 'tgadmin',
-      entities: [User],
+      entities: [User, Channel],
       synchronize: true,
     }),
 
     AuthModule,
+    ChannelsModule,
   ],
-  controllers: [AppController, ChannelsController],
-  providers: [AppService, ChannelsService],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}

@@ -36,6 +36,10 @@ export class AuthService {
     });
   }
 
+  async findUserById(id: number) {
+    return await this.authRepository.findOne({ where: { id } });
+  }
+
   generateAccessToken(userId: number) {
     return jwt.sign(
       { userId },
@@ -53,9 +57,9 @@ export class AuthService {
     );
   }
 
-  verifyRefreshToken(refreshToken: string): { userId: number | undefined } {
+  verifyToken(token: string): { userId: number | undefined } {
     const payload = jwt.verify(
-      refreshToken,
+      token,
       this.configService.get<string>('SECRET_KEY_TOKEN'),
     ) as {
       userId: number;
