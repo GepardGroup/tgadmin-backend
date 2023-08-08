@@ -2,12 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/Entities/user.entity';
 import { Repository } from 'typeorm';
-import jwt from 'jsonwebtoken';
+import * as jwt from 'jsonwebtoken';
+import { ConfigService } from '@nestjs/config/dist';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User) private authRepository: Repository<User>,
+    private configService: ConfigService,
   ) {}
 
   async createUser(
@@ -35,17 +37,27 @@ export class AuthService {
   }
 
   generateAccessToken(userId: number) {
-    return jwt.sign({ userId }, process.env.SECRET_KEY_TOKEN, {
-      expiresIn: '1d',
-    });
+    return jwt.sign(
+      { userId },
+      this.configService.get<string>('SECRET_KEY_TOKEN'),
+      {
+        expiresIn: '1d',
+      },
+    );
   }
 
   generateRefreshToken(userId: number) {
-    return jwt.sign({ userId }, process.env.SECRET_KEY_TOKEN);
+    return jwt.sign(
+      { userId },
+      this.configService.get<string>('SECRET_KEY_TOKEN'),
+    );
   }
 
   verifyRefreshToken(refreshToken: string): { userId: number | undefined } {
-    const payload = jwt.verify(refreshToken, process.env.SECRET_KEY_TOKEN) as {
+    const payload = jwt.verify(
+      refreshToken,
+      this.configService.get<string>('SECRET_KEY_TOKEN'),
+    ) as {
       userId: number;
     };
 

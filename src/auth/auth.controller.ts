@@ -17,37 +17,44 @@ export class AuthController {
     @Body('password_repeat') password_repeat: string,
   ) {
     try {
+      const errors: ResError = {};
+
+      if (!email) {
+        errors.email = 'Введите email!';
+      }
+
+      if (!user_name) {
+        errors.user_name = 'Введите имя!';
+      }
+
       const candidateEmail = await this.authService.findUserByEmail(email);
       const candidateUserName = await this.authService.findUserByUserName(
         user_name,
       );
 
-      const errors: ResError[] = [];
-
       if (candidateEmail) {
-        errors.push({
-          type: 'email',
-          message: 'Пользователь с таким email уже существует',
-        });
+        errors.email = 'Пользователь с таким email уже существует';
       }
 
       if (candidateUserName) {
-        errors.push({
-          type: 'user_name',
-          message: 'Пользователь с таким именем уже существует',
-        });
+        errors.user_name = 'Пользователь с таким именем уже существует';
+      }
+
+      if (!password) {
+        errors.password = 'Придумайте пароль!';
+      }
+
+      if (password && !password_repeat) {
+        errors.password_repeat = 'Повторите пароль!';
       }
 
       if (password !== password_repeat) {
-        errors.push({
-          type: 'password',
-          message: 'Пароли не совпадают!',
-        });
+        errors.password = 'Пароли не совпадают!';
       }
 
-      if (errors.length > 0) {
+      if (Object.keys(errors).length > 0 || !email || !user_name) {
         return res.status(400).json({
-          status: res.status,
+          status: 400,
           errors,
           mainMessage: 'Что-то пошло не так',
         });
@@ -62,18 +69,24 @@ export class AuthController {
       );
 
       const accessToken = this.authService.generateAccessToken(newUser.id);
+
       const refreshToken = this.authService.generateRefreshToken(newUser.id);
+
+      const sendUser = {
+        id: newUser.id,
+        email: newUser.email,
+        user_name: newUser.user_name,
+        created_at: newUser.created_at,
+      };
 
       return res.json({
         message: 'Пользователь создан успешно!',
         accessToken,
         refreshToken,
-        user: newUser,
+        user: sendUser,
       });
     } catch (err) {
-      return res
-        .status(500)
-        .json({ status: res.status, message: 'Ошибка сервера' });
+      return res.status(500).json({ status: 500, message: 'Ошибка сервера' });
     }
   }
 
@@ -81,13 +94,11 @@ export class AuthController {
   async login(
     @Res() res: Response,
     @Body('password') password: string,
-    @Body('emailOrUserName') email_or_user_name: string,
+    @Body('email_or_user_name') email_or_user_name: string,
   ) {
     try {
       if (!email_or_user_name) {
-        return res
-          .json(400)
-          .json({ status: res.status, message: 'Введите почту или имя!' });
+        return res.status(400).json({ message: 'Введите почту или имя!' });
       }
 
       const user = await this.authService.findUserByEmailOrUserName(
@@ -95,32 +106,55 @@ export class AuthController {
       );
 
       if (!user) {
-        return res
-          .status(400)
-          .json({ status: res.status, message: 'Пользователя не существует' });
+        return res.status(400).json({ message: 'Пользователя не существует' });
       }
 
       const verifyPassword = await bcrypt.compare(password, user.password);
 
       if (!verifyPassword) {
-        return res
-          .status(400)
-          .json({ status: res.status, message: 'Неверный пароль!' });
+        return res.status(400).json({ message: 'Неверный пароль!' });
       }
 
       const accessToken = this.authService.generateAccessToken(user.id);
       const refreshToken = this.authService.generateRefreshToken(user.id);
 
+      const sendUser = {
+        id: user.id,
+        email: user.email,
+        user_name: user.user_name,
+        created_at: user.created_at,
+      };
+
       return res.json({
         message: 'Вход выполнен успешно!',
         accessToken,
         refreshToken,
-        user,
+        user: sendUser,
       });
     } catch (err) {
-      return res
-        .status(500)
-        .json({ status: res.status, message: 'Ошибка сервера' });
+      return res.status(500).json({ message: 'Ошибка сервера' });
+    }
+  }
+
+  @Post('new-access-token')
+  async newAccessToken(
+    @Res() res: Response,
+    @Body('refresh_token') refresh_token: string,
+  ) {
+    try {
+      const userId = this.authService.verifyRefreshToken(refresh_token).userId;
+
+      if (!userId) {
+        return res
+          .status(400)
+          .json({ status: 400, message: 'Нет авторизации' });
+      }
+
+      const accessToken = this.authService.generateAccessToken(userId);
+
+      return res.json({ accessToken });
+    } catch (err) {
+      return res.status(500).json({ status: 500, message: 'Ошибка сервера' });
     }
   }
 }

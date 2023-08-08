@@ -1,4 +1,6 @@
 export type ResError = {
-  type: string;
-  message: string;
+  email?: string;
+  user_name?: string;
+  password?: string;
+  password_repeat?: string;
 };
