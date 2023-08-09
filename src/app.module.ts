@@ -7,6 +7,8 @@ import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { ChannelsModule } from './channels/channels.module';
 import { Channel } from './Entities/channel.entity';
+import { PublicationsModule } from './publications/publications.module';
+import { ViewedPublication } from './Entities/viewedPublication.entity';
 
 @Module({
   imports: [
@@ -21,12 +23,13 @@ import { Channel } from './Entities/channel.entity';
       username: 'postgres',
       password: 'admin',
       database: 'tgadmin',
-      entities: [User, Channel],
+      entities: [User, Channel, ViewedPublication],
       synchronize: true,
     }),
 
     AuthModule,
     ChannelsModule,
+    PublicationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
