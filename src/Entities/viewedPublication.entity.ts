@@ -5,7 +5,7 @@ export class ViewedPublication {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ type: 'bigint' })
   publication_id: number;
 
   @Column()
