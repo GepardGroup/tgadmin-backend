@@ -18,7 +18,7 @@ import { ViewedPublication } from './Entities/viewedPublication.entity';
 
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: 'localhost',
+      host: '194-58-90-227.cloudvps.regruhosting.ru',
       port: 5432,
       username: 'postgres',
       password: 'admin',
